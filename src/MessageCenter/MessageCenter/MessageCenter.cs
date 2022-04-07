@@ -7,24 +7,33 @@ public static class MessageCenter
 {
     class Subscription
     {
+        public Guid Id { get; set; }
+        public object Source { get; set; }
+        public MethodInfo MethodInfo { get; set; }
+        public object Target { get; set; }
         public Subscription(object source, MethodInfo methodInfo, object target)
         {
+            Id = Guid.NewGuid();
             Source = source;
             MethodInfo = methodInfo;
             Target = target;
         }
-        public object Source { get; set; }
-        public MethodInfo MethodInfo { get; set; }
-        public object Target { get; set; }
         public void Invoke(object sender, object data)
         {
-            if (sender == null || sender == Source) return;
-            if (MethodInfo.IsStatic)
+            try
             {
-                MethodInfo.Invoke(null, MethodInfo.GetParameters().Length == 1 ? new[] { sender } : new[] { sender, data });
-                return;
+                if (sender == null || sender == Source) return;
+                if (MethodInfo.IsStatic)
+                {
+                    MethodInfo.Invoke(null, MethodInfo.GetParameters().Length == 1 ? new[] { sender } : new[] { sender, data });
+                    return;
+                }
+                MethodInfo?.Invoke(Target, MethodInfo.GetParameters().Length == 2 ? new[] { sender, data } : new[] { sender });
             }
-            MethodInfo?.Invoke(Target, MethodInfo.GetParameters().Length == 2 ? new[] { sender, data } : new[] { sender });
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
     private static Dictionary<string, List<Subscription>> subs = new Dictionary<string, List<Subscription>>();
@@ -101,6 +110,13 @@ public static class MessageCenter
     public static void Subscribe<TSender, TData>(object subscriber, string name, Action<TSender, TData> action)
     {
         InnerSubscribe(subscriber, name, action?.Method, action?.Target);
+    }
+
+    public static object Subscribe<TSender, TData>(string name, Action<TSender, TData> action)
+    {
+        var result = new { };
+        InnerSubscribe(result, name, action?.Method, action?.Target);
+        return result;
     }
 
     /// <summary>
