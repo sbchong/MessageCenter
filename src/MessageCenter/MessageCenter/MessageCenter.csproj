@@ -1,24 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Authors>刘冲</Authors>
-    <Company>刘冲</Company>
-	  <Title>MessageCenter</Title>
-    <Description>进程内消息转发中心</Description>
-    <RepositoryUrl>https://github.com/sbchong/MessageCenter.git</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/sbchong/MessageCenter</PackageProjectUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Authors>刘冲</Authors>
+		<Company>刘冲</Company>
+		<Title>MessageCenter</Title>
+		<Description>进程内消息转发中心</Description>
+		<RepositoryUrl>https://github.com/sbchong/MessageCenter.git</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/sbchong/MessageCenter</PackageProjectUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<AssemblyVersion>1.0.2</AssemblyVersion>
+		<FileVersion>1.0.2</FileVersion>
+		<VersionPrefix>1.0.2</VersionPrefix>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\..\..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>

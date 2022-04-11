@@ -1,6 +1,6 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+ï»¿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace MessageCenter.Test
+namespace MessageCenterTest
 {
     [TestClass]
     public class UnitTest
@@ -8,17 +8,16 @@ namespace MessageCenter.Test
         [TestMethod]
         public void Test()
         {
-            const string CHANNEL = "²âÊÔÍ¨µÀ";
+            const string CHANNEL = "æµ‹è¯•é€šé“";
 
             string result = string.Empty;
             MessageCenter.Subscribe<UnitTest, string>(this, CHANNEL, (s, e) => result = e);
 
-            string data = "²âÊÔÊı¾İ";
+            string data = "æµ‹è¯•æ•°æ®";
             MessageCenter.Send(this, CHANNEL, data);
 
             Assert.IsTrue(result != string.Empty);
             Assert.IsTrue(result == data);
         }
-
     }
 }

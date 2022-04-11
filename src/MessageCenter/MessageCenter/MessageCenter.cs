@@ -5,44 +5,16 @@ using System.Reflection;
 
 public static class MessageCenter
 {
-    class Subscription
-    {
-        public Guid Id { get; set; }
-        public object Source { get; set; }
-        public MethodInfo MethodInfo { get; set; }
-        public object Target { get; set; }
-        public Subscription(object source, MethodInfo methodInfo, object target)
-        {
-            Id = Guid.NewGuid();
-            Source = source;
-            MethodInfo = methodInfo;
-            Target = target;
-        }
-        public void Invoke(object sender, object data)
-        {
-            try
-            {
-                if (sender == null || sender == Source) return;
-                if (MethodInfo.IsStatic)
-                {
-                    MethodInfo.Invoke(null, MethodInfo.GetParameters().Length == 1 ? new[] { sender } : new[] { sender, data });
-                    return;
-                }
-                MethodInfo?.Invoke(Target, MethodInfo.GetParameters().Length == 2 ? new[] { sender, data } : new[] { sender });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-    }
+
     private static Dictionary<string, List<Subscription>> subs = new Dictionary<string, List<Subscription>>();
 
-    public static void InnerSend(object sender, string name, object data)
+    private static void InnerSend(object sender, string channel, object data)
     {
-        if (string.IsNullOrEmpty(name))
+        if (sender == null)
             throw new NullReferenceException();
-        if (subs.TryGetValue(name, out var subscriptions))
+        if (string.IsNullOrEmpty(channel))
+            throw new NullReferenceException();
+        if (subs.TryGetValue(channel, out var subscriptions))
         {
             foreach (var subscription in subscriptions)
             {
@@ -57,9 +29,19 @@ public static class MessageCenter
     /// <param name="sender">消息发送者</param>
     /// <param name="name">管道名</param>
     /// <param name="data">消息</param>
-    public static void Send(object sender, string name, object data)
+    public static void Send(object sender, string channel, object data)
     {
-        InnerSend(sender, name, data);
+        InnerSend(sender, channel, data);
+    }
+
+    public static void Send<TData>(object sender, string channel, TData data)
+    {
+        InnerSend(sender, channel, data);
+    }
+
+    public static void Send<TSender, TData>(TSender sender, string channel, TData data)
+    {
+        InnerSend(sender, channel, data);
     }
 
     /// <summary>
@@ -67,24 +49,24 @@ public static class MessageCenter
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="name"></param>
-    public static void Send(object sender, string name)
+    public static void Send(object sender, string channel)
     {
-        InnerSend(sender, name, null);
+        InnerSend(sender, channel, null);
     }
 
-    private static void InnerSubscribe(object subscriber, string name, MethodInfo methodInfo, object target)
+    private static void InnerSubscribe(object subscriber, string channel, MethodInfo methodInfo, object target)
     {
         if (subscriber == null)
             throw new NullReferenceException();
-        if (string.IsNullOrEmpty(name))
-            throw new NullReferenceException();
+        if (string.IsNullOrEmpty(channel))
+            throw new NullReferenceException("channel can not be null");
         var sub = new Subscription(subscriber, methodInfo, target);
-        if (subs.ContainsKey(name))
+        if (subs.ContainsKey(channel))
         {
-            subs[name].Add(sub);
+            subs[channel].Add(sub);
             return;
         }
-        subs.Add(name, new List<Subscription>() { sub });
+        subs.Add(channel, new List<Subscription>() { sub });
     }
 
     /// <summary>
@@ -94,9 +76,9 @@ public static class MessageCenter
     /// <param name="subscriber">订阅者</param>
     /// <param name="name">管道名</param>
     /// <param name="action">订阅回调</param>
-    public static void Subscribe<TSender>(object subscriber, string name, Action<TSender> action)
+    public static void Subscribe<TSender>(object subscriber, string channel, Action<TSender> action)
     {
-        InnerSubscribe(subscriber, name, action?.Method, action?.Target);
+        InnerSubscribe(subscriber, channel, action?.Method, action?.Target);
     }
 
     /// <summary>
@@ -107,15 +89,15 @@ public static class MessageCenter
     /// <param name="subscriber">订阅者</param>
     /// <param name="name">管道名</param>
     /// <param name="action">订阅回调</param>
-    public static void Subscribe<TSender, TData>(object subscriber, string name, Action<TSender, TData> action)
+    public static void Subscribe<TSender, TData>(object subscriber, string channel, Action<TSender, TData> action)
     {
-        InnerSubscribe(subscriber, name, action?.Method, action?.Target);
+        InnerSubscribe(subscriber, channel, action?.Method, action?.Target);
     }
 
-    public static object Subscribe<TSender, TData>(string name, Action<TSender, TData> action)
+    public static object Subscribe<TSender, TData>(string channel, Action<TSender, TData> action)
     {
         var result = new { };
-        InnerSubscribe(result, name, action?.Method, action?.Target);
+        InnerSubscribe(result, channel, action?.Method, action?.Target);
         return result;
     }
 
@@ -124,21 +106,20 @@ public static class MessageCenter
     /// </summary>
     /// <param name="subscriber">订阅者</param>
     /// <param name="name">管道名</param>
-    public static void UnSubscribe(object subscriber, string name)
+    public static void UnSubscribe(object subscriber, string channel)
     {
-        if (subs.TryGetValue(name, out var act))
+        if (subs.TryGetValue(channel, out var act))
         {
             if (act == null && act.Count == 0)
             {
-                subs.Remove(name);
+                subs.Remove(channel);
                 return;
             }
-            subs[name].RemoveAll(x => x.Source == subscriber);
-            if (!subs[name].Any())
-                subs.Remove(name);
+            subs[channel].RemoveAll(x => x.Source == subscriber);
+            if (!subs[channel].Any())
+                subs.Remove(channel);
             return;
         }
     }
 }
-
 
